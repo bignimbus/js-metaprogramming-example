@@ -13,10 +13,36 @@ class ClassWithMethodMissing {
 
   __methodMissing__ () {
     return {
-      get: (_, key) => this.methodMissing__get(key),
-      set: (_, key, val) => this.methodMissing__set(key, val),
+      get: (self, key) => this.methodMissing__get.call(self, key),
+      set: (self, key, val) => this.methodMissing__set.call(self, key, val),
     };
   }
 }
 
-module.exports = { ClassWithMethodMissing };
+class ActiveRecordBase extends ClassWithMethodMissing {
+  static tableName () {
+    return this.name;
+  }
+
+  static [Symbol.iterator] = function * () {
+    // const allRows = `SELECT id, ${key} FROM ${this.constructor.tableName()} WHERE id = ${this.id}`;
+    for (let n of allRows) {
+      yield n;
+    }
+  }
+
+  methodMissing__get (key) {
+    if (this.hasOwnProperty(key)) {
+      return this[key];
+    } else {
+      console.log(`SELECT id, ${key} FROM ${this.constructor.tableName()} WHERE id = ${this.id}`);
+    }
+  }
+
+  methodMissing__set (key, value) {
+  }
+}
+
+class User extends ActiveRecordBase {}
+
+module.exports = { ClassWithMethodMissing, ActiveRecordBase, User };
